@@ -393,6 +393,9 @@
                             <button onclick="navigateTo('screen-gallery')" class="w-full mt-2.5 bg-white border-2 border-modern-blue text-modern-blue font-sans-ui font-semibold text-[13px] py-3 rounded-xl transition-all flex items-center justify-center gap-2 hover:bg-modern-blue hover:text-white active:scale-[0.97]">
                                 <i class="fas fa-images text-xs"></i> Comparación Antes vs Ahora
                             </button>
+                            <button onclick="navigateTo('screen-historical')" class="w-full mt-2.5 bg-parchment hover:bg-parchment-dark text-antique font-sans-ui font-semibold text-[13px] py-3 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-[0.97]">
+                                <i class="fas fa-map-marker-alt text-xs"></i> Ver puntos de interés cercanos
+                            </button>
                         </div>
                     </div>
                     <div class="h-6"></div>
@@ -429,7 +432,10 @@
                     <!-- Top bar -->
                     <div class="absolute top-3 left-3 right-3 flex items-center justify-between z-20">
                         <button onclick="navigateTo('screen-historical')" class="w-9 h-9 glass rounded-full flex items-center justify-center"><i class="fas fa-arrow-left text-white text-xs"></i></button>
-                        <div class="glass rounded-full px-3.5 py-1.5 flex items-center gap-1.5"><span class="w-2 h-2 bg-emerald-cta rounded-full animate-pulse"></span><span class="text-white text-[11px] font-sans-ui font-medium">AR Activo</span></div>
+                        <div class="glass rounded-full px-1 py-1 flex items-center shadow-lg border border-white/10">
+                            <button id="toggle-ar" class="px-3 py-1 bg-white/20 text-white rounded-full flex items-center gap-1 transition-all" onclick="setMode('AR')"><span class="w-2 h-2 bg-emerald-cta rounded-full animate-pulse" id="ar-indicator"></span><span class="text-[10px] font-sans-ui font-bold tracking-wider">AR</span></button>
+                            <button id="toggle-vr" class="px-3 py-1 text-white/50 rounded-full flex items-center gap-1 transition-all" onclick="setMode('VR')"><i class="fas fa-vr-cardboard text-[10px]"></i><span class="text-[10px] font-sans-ui font-bold tracking-wider">VR</span></button>
+                        </div>
                         <button class="w-9 h-9 glass rounded-full flex items-center justify-center"><i class="fas fa-camera text-white text-xs"></i></button>
                     </div>
 
@@ -463,51 +469,79 @@
                 <div class="screen-content h-full overflow-y-auto">
                     <div class="px-5 pt-4">
                         <button onclick="navigateTo('screen-historical')" class="mb-3 flex items-center gap-1.5 text-modern-blue font-sans-ui text-[13px] font-medium hover:underline"><i class="fas fa-arrow-left text-[10px]"></i> Volver</button>
-                        <h2 class="font-serif-display text-antique text-xl font-bold mb-0.5">Antes vs Ahora</h2>
-                        <p class="text-medium-grey font-sans-ui text-[13px] mb-5">Desliza para comparar el pasado con el presente</p>
+                        <h2 class="font-serif-display text-antique text-xl font-bold mb-0.5">Galería Multimedia</h2>
+                        <p class="text-medium-grey font-sans-ui text-[13px] mb-5">Explora y registra los puntos de interés</p>
 
-                        <!-- Slider 1 -->
-                        <div class="mb-5">
-                            <h4 class="font-serif-display text-antique text-[13px] font-bold mb-2"><i class="fas fa-landmark mr-1.5 text-[11px] opacity-60"></i>Monumento Nacional Guayabo</h4>
-                            <div class="comparison-container shadow-lg" id="comparison-1">
-                                <img src="img/guayabo.jpg" alt="Guayabo - Presente" class="comparison-after">
-                                <div class="comparison-overlay" id="overlay-1">
-                                    <img src="img/guayabo.jpg" alt="Guayabo - Pasado" style="filter: grayscale(100%) sepia(30%) contrast(1.1);">
+                        <div id="gallery-unregistered">
+                            <div class="bg-gradient-to-br from-parchment to-parchment-dark rounded-2xl p-6 text-center border border-antique/10 shadow-sm mb-6">
+                                <div class="w-16 h-16 rounded-full bg-white mx-auto shadow-md flex items-center justify-center mb-3">
+                                    <i class="fas fa-camera text-2xl text-antique"></i>
                                 </div>
-                                <div class="comparison-slider-line" id="line-1"></div>
-                                <div class="comparison-slider-handle" id="handle-1"><i class="fas fa-arrows-left-right"></i></div>
-                                <span class="comparison-label left">Antes</span>
-                                <span class="comparison-label right">Ahora</span>
+                                <h3 class="font-serif-display text-antique text-lg font-bold mb-2">Registrar foto</h3>
+                                <p class="font-sans-ui text-dark-grey text-xs mb-4">Captura el punto de interés actual para desbloquear la comparación mágica del antes y el ahora.</p>
+                                <button onclick="registerPhoto()" class="bg-emerald-cta text-white font-sans-ui font-bold text-sm px-6 py-3 rounded-xl shadow-[0_4px_12px_rgba(76,175,80,0.3)] hover:scale-105 active:scale-95 transition-transform flex items-center justify-center gap-2 mx-auto w-full max-w-[200px]">
+                                    <i class="fas fa-camera"></i> Tomar Fotografía
+                                </button>
                             </div>
                         </div>
 
-                        <!-- Slider 2 -->
-                        <div class="mb-5">
-                            <h4 class="font-serif-display text-antique text-[13px] font-bold mb-2"><i class="fas fa-theater-masks mr-1.5 text-[11px] opacity-60"></i>Teatro Nacional</h4>
-                            <div class="comparison-container shadow-lg" id="comparison-2">
-                                <img src="img/teatro.jpg" alt="Teatro - Presente" class="comparison-after">
-                                <div class="comparison-overlay" id="overlay-2">
-                                    <img src="img/teatro.jpg" alt="Teatro - Pasado" style="filter: grayscale(100%) sepia(30%) contrast(1.1);">
+                        <div id="gallery-registered" class="hidden">
+                            <h3 class="font-serif-display text-antique text-[15px] font-bold mb-3 flex items-center gap-2"><i class="fas fa-history text-modern-blue text-xs"></i>Comparación Antes vs Ahora</h3>
+                            <p class="text-medium-grey font-sans-ui text-[11px] mb-4">Desliza para comparar tu foto con el pasado</p>
+
+                            <!-- Slider 1 -->
+                            <div class="mb-5">
+                                <h4 class="font-serif-display text-antique text-[13px] font-bold mb-2"><i class="fas fa-landmark mr-1.5 text-[11px] opacity-60"></i>Monumento Nacional Guayabo</h4>
+                                <div class="comparison-container shadow-lg" id="comparison-1">
+                                    <img src="img/guayabo.jpg" alt="Guayabo - Presente" class="comparison-after">
+                                    <div class="comparison-overlay" id="overlay-1">
+                                        <img src="img/guayabo.jpg" alt="Guayabo - Pasado" style="filter: grayscale(100%) sepia(30%) contrast(1.1);">
+                                    </div>
+                                    <div class="comparison-slider-line" id="line-1"></div>
+                                    <div class="comparison-slider-handle" id="handle-1"><i class="fas fa-arrows-left-right"></i></div>
+                                    <span class="comparison-label left">Antes</span>
+                                    <span class="comparison-label right">Ahora</span>
                                 </div>
-                                <div class="comparison-slider-line" id="line-2"></div>
-                                <div class="comparison-slider-handle" id="handle-2"><i class="fas fa-arrows-left-right"></i></div>
-                                <span class="comparison-label left">Antes</span>
-                                <span class="comparison-label right">Ahora</span>
+                            </div>
+
+                            <!-- Slider 2 -->
+                            <div class="mb-5">
+                                <h4 class="font-serif-display text-antique text-[13px] font-bold mb-2"><i class="fas fa-theater-masks mr-1.5 text-[11px] opacity-60"></i>Teatro Nacional</h4>
+                                <div class="comparison-container shadow-lg" id="comparison-2">
+                                    <img src="img/teatro.jpg" alt="Teatro - Presente" class="comparison-after">
+                                    <div class="comparison-overlay" id="overlay-2">
+                                        <img src="img/teatro.jpg" alt="Teatro - Pasado" style="filter: grayscale(100%) sepia(30%) contrast(1.1);">
+                                    </div>
+                                    <div class="comparison-slider-line" id="line-2"></div>
+                                    <div class="comparison-slider-handle" id="handle-2"><i class="fas fa-arrows-left-right"></i></div>
+                                    <span class="comparison-label left">Antes</span>
+                                    <span class="comparison-label right">Ahora</span>
+                                </div>
+                            </div>
+
+                            <!-- Slider 3 -->
+                            <div class="mb-5">
+                                <h4 class="font-serif-display text-antique text-[13px] font-bold mb-2"><i class="fas fa-church mr-1.5 text-[11px] opacity-60"></i>Basílica de los Ángeles</h4>
+                                <div class="comparison-container shadow-lg" id="comparison-3">
+                                    <img src="img/basilica.jpg" alt="Basílica - Presente" class="comparison-after">
+                                    <div class="comparison-overlay" id="overlay-3">
+                                        <img src="img/basilica.jpg" alt="Basílica - Pasado" style="filter: grayscale(100%) sepia(30%) contrast(1.1);">
+                                    </div>
+                                    <div class="comparison-slider-line" id="line-3"></div>
+                                    <div class="comparison-slider-handle" id="handle-3"><i class="fas fa-arrows-left-right"></i></div>
+                                    <span class="comparison-label left">Antes</span>
+                                    <span class="comparison-label right">Ahora</span>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Slider 3 -->
-                        <div class="mb-5">
-                            <h4 class="font-serif-display text-antique text-[13px] font-bold mb-2"><i class="fas fa-church mr-1.5 text-[11px] opacity-60"></i>Basílica de los Ángeles</h4>
-                            <div class="comparison-container shadow-lg" id="comparison-3">
-                                <img src="img/basilica.jpg" alt="Basílica - Presente" class="comparison-after">
-                                <div class="comparison-overlay" id="overlay-3">
-                                    <img src="img/basilica.jpg" alt="Basílica - Pasado" style="filter: grayscale(100%) sepia(30%) contrast(1.1);">
-                                </div>
-                                <div class="comparison-slider-line" id="line-3"></div>
-                                <div class="comparison-slider-handle" id="handle-3"><i class="fas fa-arrows-left-right"></i></div>
-                                <span class="comparison-label left">Antes</span>
-                                <span class="comparison-label right">Ahora</span>
+                        <div class="mt-6 mb-6">
+                            <h3 class="font-serif-display text-antique text-[15px] font-bold mb-3 flex items-center gap-2"><i class="fas fa-clock text-emerald-cta text-xs"></i>Fotografías Recientes</h3>
+                            <div class="grid grid-cols-2 gap-3">
+                                <img src="img/guayabo.jpg" class="w-full h-32 object-cover rounded-xl shadow-sm border border-parchment-dark/30">
+                                <img src="img/teatro.jpg" class="w-full h-32 object-cover rounded-xl shadow-sm border border-parchment-dark/30">
+                                <img src="img/basilica.jpg" class="w-full h-32 object-cover rounded-xl shadow-sm border border-parchment-dark/30">
+                                <img src="img/orosi.jpg" class="w-full h-32 object-cover rounded-xl shadow-sm border border-parchment-dark/30">
                             </div>
                         </div>
 
@@ -516,7 +550,7 @@
                                 <div class="w-8 h-8 rounded-full bg-modern-blue/10 flex items-center justify-center"><i class="fas fa-info-circle text-modern-blue text-sm"></i></div>
                                 <h4 class="font-serif-display text-antique text-[13px] font-bold">Sobre esta función</h4>
                             </div>
-                            <p class="text-dark-grey text-[12px] font-sans-ui leading-relaxed">Nuestra tecnología superpone fotografías históricas sobre la vista actual. Desliza el control central para viajar entre el pasado y el presente de Costa Rica.</p>
+                            <p class="text-dark-grey text-[12px] font-sans-ui leading-relaxed">Nuestra tecnología superpone fotografías históricas sobre la vista actual tras registrar el entorno.</p>
                         </div>
                     </div>
                 </div>
@@ -576,26 +610,72 @@
                             </div>
                         </div>
 
-                        <!-- Contact -->
-                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-parchment-dark/20 mb-3">
-                            <h4 class="font-serif-display text-antique text-[14px] font-bold mb-3 flex items-center gap-2"><i class="fas fa-envelope text-emerald-cta text-xs"></i>Contacto</h4>
-                            <div class="space-y-2.5">
-                                <a href="mailto:info@echohistory.cr" class="flex items-center gap-2.5 text-dark-grey font-sans-ui text-[12px] hover:text-modern-blue transition-colors"><div class="w-8 h-8 rounded-lg bg-parchment flex items-center justify-center"><i class="fas fa-envelope text-antique text-[10px]"></i></div>info@echohistory.cr</a>
-                                <a href="#" class="flex items-center gap-2.5 text-dark-grey font-sans-ui text-[12px] hover:text-modern-blue transition-colors"><div class="w-8 h-8 rounded-lg bg-parchment flex items-center justify-center"><i class="fas fa-globe text-antique text-[10px]"></i></div>www.echohistory.cr</a>
-                            </div>
-                            <div class="flex items-center justify-center gap-3 mt-4 pt-3.5 border-t border-parchment-dark/25">
-                                <a href="#" class="w-10 h-10 rounded-xl bg-antique text-white flex items-center justify-center hover:bg-antique-light transition-colors shadow-sm"><i class="fab fa-instagram"></i></a>
-                                <a href="#" class="w-10 h-10 rounded-xl bg-antique text-white flex items-center justify-center hover:bg-antique-light transition-colors shadow-sm"><i class="fab fa-x-twitter"></i></a>
-                                <a href="#" class="w-10 h-10 rounded-xl bg-antique text-white flex items-center justify-center hover:bg-antique-light transition-colors shadow-sm"><i class="fab fa-facebook-f"></i></a>
-                                <a href="#" class="w-10 h-10 rounded-xl bg-antique text-white flex items-center justify-center hover:bg-antique-light transition-colors shadow-sm"><i class="fab fa-youtube"></i></a>
-                                <a href="#" class="w-10 h-10 rounded-xl bg-antique text-white flex items-center justify-center hover:bg-antique-light transition-colors shadow-sm"><i class="fab fa-tiktok"></i></a>
-                            </div>
-                        </div>
-
-                        <div class="text-center py-4">
+                        <div class="text-center py-4 mt-6">
                             <p class="text-medium-grey font-sans-ui text-[10px]">EchoHistory v1.0.0 · Prototipo</p>
                             <p class="text-medium-grey/50 font-sans-ui text-[9px] mt-0.5">© 2026 EchoHistory · Daniel Vindas & Kenneth Rojas · UH</p>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== MENU ==================== -->
+            <section id="screen-menu" class="screen absolute inset-0">
+                <div class="screen-content h-full overflow-y-auto px-5 pt-6 bg-parchment-dark/10">
+                    <h2 class="font-serif-display text-antique text-2xl font-bold mb-6">Menú Principal</h2>
+                    
+                    <div class="space-y-3">
+                        <button onclick="navigateTo('screen-about')" class="w-full bg-white rounded-2xl p-4 flex items-center justify-between shadow-sm border border-parchment-dark/20 active:scale-[0.98] transition-transform">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-modern-blue/10 flex items-center justify-center">
+                                    <i class="fas fa-info-circle text-modern-blue"></i>
+                                </div>
+                                <div class="text-left">
+                                    <h3 class="font-serif-display text-antique font-bold text-[15px]">Sobre el Proyecto</h3>
+                                    <p class="font-sans-ui text-medium-grey text-[11px]">Objetivos y tecnología</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-right text-parchment-dark text-sm"></i>
+                        </button>
+                        
+                        <button onclick="navigateTo('screen-contact')" class="w-full bg-white rounded-2xl p-4 flex items-center justify-between shadow-sm border border-parchment-dark/20 active:scale-[0.98] transition-transform">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-emerald-cta/10 flex items-center justify-center">
+                                    <i class="fas fa-envelope text-emerald-cta"></i>
+                                </div>
+                                <div class="text-left">
+                                    <h3 class="font-serif-display text-antique font-bold text-[15px]">Contacto</h3>
+                                    <p class="font-sans-ui text-medium-grey text-[11px]">Redes sociales e info general</p>
+                                </div>
+                            </div>
+                            <i class="fas fa-chevron-right text-parchment-dark text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== CONTACT ==================== -->
+            <section id="screen-contact" class="screen absolute inset-0">
+                <div class="screen-content h-full overflow-y-auto px-5 pt-4">
+                    <button onclick="navigateTo('screen-menu')" class="mb-3 flex items-center gap-1.5 text-modern-blue font-sans-ui text-[13px] font-medium hover:underline"><i class="fas fa-arrow-left text-[10px]"></i> Volver</button>
+                    <h2 class="font-serif-display text-antique text-xl font-bold mb-0.5">Contacto</h2>
+                    <p class="text-medium-grey font-sans-ui text-[13px] mb-5">Comunícate con nosotros</p>
+                    
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-parchment-dark/20 mb-3">
+                        <h4 class="font-serif-display text-antique text-[14px] font-bold mb-3 flex items-center gap-2"><i class="fas fa-envelope text-emerald-cta text-xs"></i>Información General</h4>
+                        <div class="space-y-2.5">
+                            <a href="mailto:info@echohistory.cr" class="flex items-center gap-2.5 text-dark-grey font-sans-ui text-[12px] hover:text-modern-blue transition-colors"><div class="w-8 h-8 rounded-lg bg-parchment flex items-center justify-center"><i class="fas fa-envelope text-antique text-[10px]"></i></div>info@echohistory.cr</a>
+                            <a href="#" class="flex items-center gap-2.5 text-dark-grey font-sans-ui text-[12px] hover:text-modern-blue transition-colors"><div class="w-8 h-8 rounded-lg bg-parchment flex items-center justify-center"><i class="fas fa-globe text-antique text-[10px]"></i></div>www.echohistory.cr</a>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-parchment-dark/20 mb-3">
+                         <h4 class="font-serif-display text-antique text-[14px] font-bold mb-3 flex items-center gap-2"><i class="fas fa-hashtag text-modern-blue text-xs"></i>Redes Sociales</h4>
+                         <div class="grid grid-cols-2 gap-3">
+                            <a href="#" class="w-full flex items-center gap-2 p-2 rounded-xl border border-parchment-dark/20 hover:bg-parchment transition-colors"><div class="w-8 h-8 rounded-lg bg-antique text-white flex items-center justify-center shadow-sm"><i class="fab fa-instagram text-[13px]"></i></div><span class="font-sans-ui text-xs font-semibold">Instagram</span></a>
+                            <a href="#" class="w-full flex items-center gap-2 p-2 rounded-xl border border-parchment-dark/20 hover:bg-parchment transition-colors"><div class="w-8 h-8 rounded-lg bg-antique text-white flex items-center justify-center shadow-sm"><i class="fab fa-twitter text-[13px]"></i></div><span class="font-sans-ui text-xs font-semibold">Twitter (X)</span></a>
+                            <a href="#" class="w-full flex items-center gap-2 p-2 rounded-xl border border-parchment-dark/20 hover:bg-parchment transition-colors"><div class="w-8 h-8 rounded-lg bg-antique text-white flex items-center justify-center shadow-sm"><i class="fab fa-facebook-f text-[13px]"></i></div><span class="font-sans-ui text-xs font-semibold">Facebook</span></a>
+                            <a href="#" class="w-full flex items-center gap-2 p-2 rounded-xl border border-parchment-dark/20 hover:bg-parchment transition-colors"><div class="w-8 h-8 rounded-lg bg-antique text-white flex items-center justify-center shadow-sm"><i class="fab fa-youtube text-[13px]"></i></div><span class="font-sans-ui text-xs font-semibold">YouTube</span></a>
+                         </div>
                     </div>
                 </div>
             </section>
@@ -622,10 +702,10 @@
         <nav class="flex-shrink-0 bg-white border-t border-parchment-dark/25 px-1 pt-1.5 pb-[max(6px,env(safe-area-inset-bottom))] z-50 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
             <div class="flex items-center justify-around">
                 <button class="nav-item active relative flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all" onclick="navigateTo('screen-home')" id="nav-home"><i class="nav-icon fas fa-home text-base transition-colors"></i><span class="nav-label text-[9px] font-sans-ui font-medium transition-colors">Inicio</span></button>
-                <button class="nav-item relative flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all" onclick="navigateTo('screen-historical')" id="nav-historical"><i class="nav-icon fas fa-map-marked-alt text-base text-medium-grey transition-colors"></i><span class="nav-label text-[9px] font-sans-ui font-medium text-medium-grey transition-colors">Mapa</span></button>
+                <button class="nav-item relative flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all" onclick="navigateTo('screen-historical')" id="nav-historical"><i class="nav-icon fas fa-map-marked-alt text-base text-medium-grey transition-colors"></i><span class="nav-label text-[9px] font-sans-ui font-medium text-medium-grey transition-colors">Históricos</span></button>
                 <button class="nav-item relative flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all" onclick="navigateTo('screen-ar')" id="nav-ar"><i class="nav-icon fas fa-cube text-base text-medium-grey transition-colors"></i><span class="nav-label text-[9px] font-sans-ui font-medium text-medium-grey transition-colors">AR</span></button>
                 <button class="nav-item relative flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all" onclick="navigateTo('screen-gallery')" id="nav-gallery"><i class="nav-icon fas fa-images text-base text-medium-grey transition-colors"></i><span class="nav-label text-[9px] font-sans-ui font-medium text-medium-grey transition-colors">Galería</span></button>
-                <button class="nav-item relative flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all" onclick="navigateTo('screen-about')" id="nav-about"><i class="nav-icon fas fa-info-circle text-base text-medium-grey transition-colors"></i><span class="nav-label text-[9px] font-sans-ui font-medium text-medium-grey transition-colors">Info</span></button>
+                <button class="nav-item relative flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all" onclick="navigateTo('screen-menu')" id="nav-menu"><i class="nav-icon fas fa-bars text-base text-medium-grey transition-colors"></i><span class="nav-label text-[9px] font-sans-ui font-medium text-medium-grey transition-colors">Menú</span></button>
             </div>
         </nav>
     </div>
@@ -778,15 +858,19 @@
             'screen-historical': 'nav-historical',
             'screen-ar': 'nav-ar',
             'screen-gallery': 'nav-gallery',
-            'screen-about': 'nav-about',
+            'screen-menu': 'nav-menu',
+            'screen-about': 'nav-menu',
+            'screen-contact': 'nav-menu'
         };
         const titles = {
             'screen-home': 'EchoHistory',
-            'screen-historical': 'Ubicaciones',
-            'screen-detail': 'Detalle',
+            'screen-historical': 'Puntos Históricos',
+            'screen-detail': 'Detalle del Lugar',
             'screen-ar': 'Experiencia AR',
-            'screen-gallery': 'Galería',
-            'screen-about': 'Sobre Nosotros',
+            'screen-gallery': 'Galería Multimedia',
+            'screen-menu': 'Menú General',
+            'screen-about': 'Sobre el Proyecto',
+            'screen-contact': 'Contacto'
         };
 
         window.navigateTo = function(screenId) {
@@ -829,6 +913,37 @@
         window.showARInfo = function() { const m = document.getElementById('ar-info-modal'); m.classList.remove('hidden'); m.classList.add('flex'); };
         window.closeARInfo = function() { const m = document.getElementById('ar-info-modal'); m.classList.remove('flex'); m.classList.add('hidden'); };
         document.getElementById('ar-info-modal')?.addEventListener('click', function(e) { if (e.target === this) closeARInfo(); });
+
+        // ======================== NEW LOGIC ========================
+        window.setMode = function(mode) {
+            const arBtn = document.getElementById('toggle-ar');
+            const vrBtn = document.getElementById('toggle-vr');
+            const arBg = document.querySelector('#screen-ar img.absolute.inset-0');
+            const arIndicator = document.getElementById('ar-indicator');
+            if(mode === 'AR') {
+                arBtn.className = "px-3 py-1 bg-white/20 text-white rounded-full flex items-center gap-1 transition-all";
+                vrBtn.className = "px-3 py-1 text-white/50 rounded-full flex items-center gap-1 transition-all";
+                if(arIndicator) arIndicator.classList.remove('hidden');
+                if(arBg) arBg.src = "img/ar_bg.jpg";
+            } else {
+                vrBtn.className = "px-3 py-1 bg-white/20 text-white rounded-full flex items-center gap-1 transition-all";
+                arBtn.className = "px-3 py-1 text-white/50 rounded-full flex items-center gap-1 transition-all";
+                if(arIndicator) arIndicator.classList.add('hidden');
+                // Use a general background to simulate VR, like the heroic view
+                if(arBg) arBg.src = "img/hero.jpg"; 
+            }
+        };
+
+        window.registerPhoto = function() {
+            document.getElementById('gallery-unregistered').style.display = 'none';
+            document.getElementById('gallery-registered').classList.remove('hidden');
+            // Init sliders manually here if needed or let MutationObserver handle it
+            setTimeout(() => {
+                initSlider('comparison-1','overlay-1','line-1','handle-1');
+                initSlider('comparison-2','overlay-2','line-2','handle-2');
+                initSlider('comparison-3','overlay-3','line-3','handle-3');
+            }, 100);
+        };
 
         // ======================== COMPARISON SLIDER ========================
         function initSlider(cId, oId, lId, hId) {

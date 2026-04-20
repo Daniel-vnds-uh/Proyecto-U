@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EchoHistory — Turismo Cultural Histórico AR · Costa Rica</title>
+    <meta name="description" content="EchoHistory: Plataforma WebAR para turismo cultural histórico en Costa Rica. Descubre el patrimonio costarricense a través de experiencias de realidad aumentada.">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        parchment:        '#F4EDE4',
+                        'parchment-dark': '#E8DDD0',
+                        'antique':        '#5C3A21',
+                        'antique-light':  '#7A5537',
+                        'modern-blue':    '#2A6F97',
+                        'modern-blue-light': '#3A8FC0',
+                        'emerald-cta':    '#4CAF50',
+                        'emerald-dark':   '#3D8B40',
+                        'dark-grey':      '#2B2B2B',
+                        'medium-grey':    '#6B6B6B',
+                    },
+                    fontFamily: {
+                        'serif-display': ['"Playfair Display"', 'Georgia', 'serif'],
+                        'sans-ui':       ['"Inter"', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'float':      'float 3s ease-in-out infinite',
+                        'fade-in':    'fadeIn 0.4s ease-out forwards',
+                        'slide-up':   'slideUp 0.5s ease-out forwards',
+                        'glow':       'glow 2s ease-in-out infinite alternate',
+                        'spin-slow':  'spin 8s linear infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+                            '50%':     { transform: 'translateY(-12px) rotate(1.5deg)' },
+                        },
+                        fadeIn: {
+                            '0%':   { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%':   { opacity: '0', transform: 'translateY(24px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        glow: {
+                            '0%':   { boxShadow: '0 0 5px rgba(76,175,80,0.3)' },
+                            '100%': { boxShadow: '0 0 18px rgba(76,175,80,0.5), 0 0 30px rgba(76,175,80,0.15)' },
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: #1a1a2e; }
+
+        /* Scrollbar */
+        .screen-content::-webkit-scrollbar { width: 3px; }
+        .screen-content::-webkit-scrollbar-track { background: transparent; }
+        .screen-content::-webkit-scrollbar-thumb { background: #5C3A21; border-radius: 10px; }
+
+        /* Comparison Slider */
+        .comparison-container { position: relative; width: 100%; aspect-ratio: 4/3; overflow: hidden; border-radius: 16px; cursor: ew-resize; touch-action: none; }
+        .comparison-container img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; user-select: none; }
+        .comparison-overlay { position: absolute; top: 0; left: 0; width: 50%; height: 100%; overflow: hidden; }
+        .comparison-overlay img { width: 200%; max-width: none; }
+        .comparison-slider-line { position: absolute; top: 0; left: 50%; width: 3px; height: 100%; background: white; transform: translateX(-50%); z-index: 10; box-shadow: 0 0 8px rgba(0,0,0,0.5); }
+        .comparison-slider-handle { position: absolute; top: 50%; left: 50%; width: 44px; height: 44px; background: white; border-radius: 50%; transform: translate(-50%, -50%); z-index: 11; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.4); font-size: 14px; color: #5C3A21; }
+        .comparison-label { position: absolute; top: 12px; padding: 4px 14px; background: rgba(0,0,0,0.55); color: white; font-size: 11px; font-weight: 600; border-radius: 20px; z-index: 5; letter-spacing: 0.5px; text-transform: uppercase; }
+        .comparison-label.left { left: 12px; }
+        .comparison-label.right { right: 12px; }
+
+        /* AR Scanner */
+        @keyframes scanLine { 0% { top: 0; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+        .ar-scan-line { position: absolute; left: 10%; right: 10%; height: 2px; background: linear-gradient(90deg, transparent, #4CAF50, transparent); animation: scanLine 3s ease-in-out infinite; z-index: 5; }
+        .ar-bracket { position: absolute; width: 28px; height: 28px; border-color: #4CAF50; z-index: 6; }
+        .ar-bracket.tl { top: 15%; left: 15%; border-top: 2px solid; border-left: 2px solid; }
+        .ar-bracket.tr { top: 15%; right: 15%; border-top: 2px solid; border-right: 2px solid; }
+        .ar-bracket.bl { bottom: 35%; left: 15%; border-bottom: 2px solid; border-left: 2px solid; }
+        .ar-bracket.br { bottom: 35%; right: 15%; border-bottom: 2px solid; border-right: 2px solid; }
+
+        /* Nav */
+        .nav-item.active .nav-icon { color: #4CAF50; }
+        .nav-item.active .nav-label { color: #4CAF50; font-weight: 600; }
+        .nav-item.active::before { content: ''; position: absolute; top: -2px; left: 50%; transform: translateX(-50%); width: 20px; height: 3px; background: #4CAF50; border-radius: 0 0 4px 4px; }
+
+        /* Glass */
+        .glass { background: rgba(255,255,255,0.12); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.18); }
+
+        /* Screens */
+        .screen { display: none; opacity: 0; transition: opacity 0.25s ease; }
+        .screen.active { display: flex; flex-direction: column; opacity: 1; }
+
+        /* Gradient overlay for cards */
+        .card-gradient::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 65%; background: linear-gradient(to top, rgba(0,0,0,0.7), transparent); border-radius: 0 0 16px 16px; pointer-events: none; }
+
+        /* Ornament */
+        .ornament { display: inline-block; width: 50px; height: 2px; background: linear-gradient(90deg, transparent, #5C3A21, transparent); }
+
+        /* Pulse ring */
+        @keyframes pulseRing { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(1.4); opacity: 0; } }
+        .pulse-ring { position: relative; }
+        .pulse-ring::before { content: ''; position: absolute; inset: -5px; border-radius: inherit; border: 2px solid #4CAF50; animation: pulseRing 2s ease-out infinite; }
+
+        /* Horizontal scroll cards */
+        .scroll-cards { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x mandatory; -ms-overflow-style: none; scrollbar-width: none; }
+        .scroll-cards::-webkit-scrollbar { display: none; }
+        .scroll-cards > * { scroll-snap-align: start; flex-shrink: 0; }
+
+        /* Category pill active */
+        .cat-pill.active { background: #5C3A21; color: white; }
+
+        /* Smooth card entrance */
+        .card-enter { opacity: 0; transform: translateY(16px); animation: slideUp 0.4s ease-out forwards; }
+        .card-enter:nth-child(2) { animation-delay: 0.08s; }
+        .card-enter:nth-child(3) { animation-delay: 0.16s; }
+        .card-enter:nth-child(4) { animation-delay: 0.24s; }
+        .card-enter:nth-child(5) { animation-delay: 0.32s; }
+        .card-enter:nth-child(6) { animation-delay: 0.40s; }
+    </style>
+</head>
+
+<body class="flex items-center justify-center min-h-screen p-0 sm:p-4" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);">
+
+    <!-- ===== Mobile Frame ===== -->
+    <div id="app" class="relative w-full max-w-[430px] h-[100dvh] sm:h-[870px] bg-parchment sm:rounded-[44px] sm:shadow-2xl overflow-hidden flex flex-col sm:border-[6px] sm:border-black/70">
+
+        <!-- Status Bar -->
+        <div class="flex-shrink-0 flex items-center justify-between px-6 pt-2.5 pb-1 bg-antique text-white/90 text-[11px] font-sans-ui font-medium z-50">
+            <span>12:03</span>
+            <div class="flex items-center gap-1.5">
+                <i class="fas fa-signal text-[10px]"></i>
+                <i class="fas fa-wifi text-[10px]"></i>
+                <i class="fas fa-battery-full text-[10px]"></i>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <header class="flex-shrink-0 bg-antique px-5 pb-2.5 pt-0.5 flex items-center justify-between z-40 shadow-md">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-emerald-cta/20 flex items-center justify-center">
+                    <i class="fas fa-landmark text-emerald-cta text-sm"></i>
+                </div>
+                <h1 class="font-serif-display text-white text-lg font-bold tracking-wide" id="header-title">EchoHistory</h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <button class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors" aria-label="Buscar">
+                    <i class="fas fa-search text-white/70 text-xs"></i>
+                </button>
+                <button class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors relative" aria-label="Notificaciones">
+                    <i class="fas fa-bell text-white/70 text-xs"></i>
+                    <span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-cta rounded-full border-2 border-antique"></span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Screens Container -->
+        <main class="flex-1 overflow-hidden relative">
+
+            <!-- ==================== HOME ==================== -->
+            <section id="screen-home" class="screen active absolute inset-0">
+                <div class="screen-content h-full overflow-y-auto">
+                    <!-- Hero -->
+                    <div class="relative overflow-hidden" style="min-height: 300px;">
+                        <div class="absolute inset-0">
+                            <img src="img/hero.png" alt="Paisaje de Costa Rica" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-b from-antique/60 via-antique/30 to-parchment"></div>
+                        </div>
+                        <div class="relative px-6 pt-8 pb-16 text-center">
+                            <div class="inline-flex items-center gap-1.5 mb-3 px-3.5 py-1.5 rounded-full bg-white/20 backdrop-blur-sm border border-white/25">
+                                <span class="w-1.5 h-1.5 bg-emerald-cta rounded-full animate-pulse"></span>
+                                <span class="text-white text-[11px] font-sans-ui font-medium tracking-wider uppercase">Realidad Aumentada</span>
+                            </div>
+                            <h2 class="font-serif-display text-white text-[34px] font-bold leading-[1.15] mb-3 drop-shadow-lg">
+                                Descubre la<br>Historia de<br><span class="text-emerald-cta">Costa Rica</span>
+                            </h2>
+                            <p class="text-white/80 font-sans-ui text-[13px] leading-relaxed max-w-[260px] mx-auto mb-6">
+                                Viaja en el tiempo con experiencias AR en sitios históricos costarricenses.
+                            </p>
+                            <button onclick="navigateTo('screen-locations')" class="relative inline-flex items-center gap-2 bg-emerald-cta hover:bg-emerald-dark text-white font-sans-ui font-semibold text-[15px] px-7 py-3.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95 animate-glow">
+                                <i class="fas fa-compass text-sm"></i>
+                                Explorar Sitios Históricos
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="px-5 -mt-6 relative z-10">
+                        <div class="bg-white rounded-2xl shadow-lg p-4 flex items-center justify-around border border-parchment-dark/30">
+                            <div class="text-center">
+                                <div class="text-xl font-bold text-antique font-serif-display">6</div>
+                                <div class="text-[10px] text-medium-grey font-sans-ui mt-0.5">Sitios</div>
+                            </div>
+                            <div class="w-px h-9 bg-parchment-dark/50"></div>
+                            <div class="text-center">
+                                <div class="text-xl font-bold text-modern-blue font-serif-display">12</div>
+                                <div class="text-[10px] text-medium-grey font-sans-ui mt-0.5">Modelos AR</div>
+                            </div>
+                            <div class="w-px h-9 bg-parchment-dark/50"></div>
+                            <div class="text-center">
+                                <div class="text-xl font-bold text-emerald-cta font-serif-display">4</div>
+                                <div class="text-[10px] text-medium-grey font-sans-ui mt-0.5">Provincias</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Featured Horizontal Scroll -->
+                    <div class="mt-6 mb-2">
+                        <div class="px-5 flex items-center justify-between mb-3">
+                            <h3 class="font-serif-display text-antique text-[17px] font-bold">Destacados</h3>
+                            <button onclick="navigateTo('screen-locations')" class="text-modern-blue text-xs font-sans-ui font-semibold hover:underline">Ver todo <i class="fas fa-chevron-right text-[9px] ml-0.5"></i></button>
+                        </div>
+                        <div class="scroll-cards pl-5 pr-3">
+                            <!-- Featured 1 -->
+                            <div class="relative w-[260px] h-[180px] rounded-2xl overflow-hidden shadow-lg card-gradient cursor-pointer group" onclick="showDetail(0)">
+                                <img src="img/guayabo.png" alt="Monumento Nacional Guayabo" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <div class="absolute bottom-0 left-0 right-0 p-3.5 z-10">
+                                    <span class="inline-block px-2 py-0.5 bg-emerald-cta text-white text-[9px] font-sans-ui font-bold rounded-full mb-1.5 uppercase tracking-wider">Patrimonio</span>
+                                    <h4 class="font-serif-display text-white text-[15px] font-bold leading-snug">Monumento Guayabo</h4>
+                                    <p class="text-white/65 text-[11px] font-sans-ui mt-0.5"><i class="fas fa-map-marker-alt mr-1 text-[9px]"></i>Turrialba, Cartago</p>
+                                </div>
+                            </div>
+                            <!-- Featured 2 -->
+                            <div class="relative w-[260px] h-[180px] rounded-2xl overflow-hidden shadow-lg card-gradient cursor-pointer group" onclick="showDetail(1)">
+                                <img src="img/teatro.png" alt="Teatro Nacional" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <div class="absolute bottom-0 left-0 right-0 p-3.5 z-10">
+                                    <span class="inline-block px-2 py-0.5 bg-modern-blue text-white text-[9px] font-sans-ui font-bold rounded-full mb-1.5 uppercase tracking-wider">Popular</span>
+                                    <h4 class="font-serif-display text-white text-[15px] font-bold leading-snug">Teatro Nacional</h4>
+                                    <p class="text-white/65 text-[11px] font-sans-ui mt-0.5"><i class="fas fa-map-marker-alt mr-1 text-[9px]"></i>San José Centro</p>
+                                </div>
+                            </div>
+                            <!-- Featured 3 -->
+                            <div class="relative w-[260px] h-[180px] rounded-2xl overflow-hidden shadow-lg card-gradient cursor-pointer group" onclick="showDetail(3)">
+                                <img src="img/basilica.png" alt="Basílica de los Ángeles" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <div class="absolute bottom-0 left-0 right-0 p-3.5 z-10">
+                                    <span class="inline-block px-2 py-0.5 bg-antique text-white text-[9px] font-sans-ui font-bold rounded-full mb-1.5 uppercase tracking-wider">Icónico</span>
+                                    <h4 class="font-serif-display text-white text-[15px] font-bold leading-snug">Basílica de los Ángeles</h4>
+                                    <p class="text-white/65 text-[11px] font-sans-ui mt-0.5"><i class="fas fa-map-marker-alt mr-1 text-[9px]"></i>Cartago</p>
+                                </div>
+                            </div>
+                            <div class="w-3 flex-shrink-0"></div>
+                        </div>
+                    </div>
+
+                    <!-- Nearby Section -->
+                    <div class="px-5 mt-4 mb-2">
+                        <h3 class="font-serif-display text-antique text-[17px] font-bold mb-3">Cerca de ti</h3>
+                        <!-- Compact cards -->
+                        <div class="space-y-3">
+                            <div class="bg-white rounded-xl shadow-md overflow-hidden flex cursor-pointer hover:shadow-lg transition-shadow group" onclick="showDetail(4)">
+                                <img src="img/orosi.png" alt="Iglesia de Orosí" class="w-24 h-24 object-cover group-hover:scale-105 transition-transform duration-500">
+                                <div class="flex-1 p-3 flex flex-col justify-center">
+                                    <h4 class="font-serif-display text-antique text-sm font-bold leading-tight">Iglesia Colonial de Orosí</h4>
+                                    <p class="text-medium-grey text-[11px] font-sans-ui mt-0.5"><i class="fas fa-map-marker-alt text-modern-blue text-[9px] mr-1"></i>Valle de Orosí · 28 km</p>
+                                    <div class="flex items-center gap-1 mt-1.5">
+                                        <div class="flex text-yellow-500 text-[9px] gap-px"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i></div>
+                                        <span class="text-medium-grey text-[10px] font-sans-ui">4.7</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center pr-3"><i class="fas fa-chevron-right text-parchment-dark text-xs"></i></div>
+                            </div>
+                            <div class="bg-white rounded-xl shadow-md overflow-hidden flex cursor-pointer hover:shadow-lg transition-shadow group" onclick="showDetail(5)">
+                                <img src="img/museo.png" alt="Museo Nacional" class="w-24 h-24 object-cover group-hover:scale-105 transition-transform duration-500">
+                                <div class="flex-1 p-3 flex flex-col justify-center">
+                                    <h4 class="font-serif-display text-antique text-sm font-bold leading-tight">Museo Nacional</h4>
+                                    <p class="text-medium-grey text-[11px] font-sans-ui mt-0.5"><i class="fas fa-map-marker-alt text-modern-blue text-[9px] mr-1"></i>San José · 0.8 km</p>
+                                    <div class="flex items-center gap-1 mt-1.5">
+                                        <div class="flex text-yellow-500 text-[9px] gap-px"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                                        <span class="text-medium-grey text-[10px] font-sans-ui">4.9</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center pr-3"><i class="fas fa-chevron-right text-parchment-dark text-xs"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- How it works -->
+                    <div class="px-5 mt-5 mb-8">
+                        <h3 class="font-serif-display text-antique text-[17px] font-bold mb-1 text-center">¿Cómo Funciona?</h3>
+                        <div class="ornament block mx-auto mb-4"></div>
+                        <div class="flex gap-3">
+                            <div class="flex-1 bg-white rounded-xl p-3.5 text-center shadow-sm border border-parchment-dark/20">
+                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-modern-blue/10 to-modern-blue/5 flex items-center justify-center mx-auto mb-2"><i class="fas fa-map-marked-alt text-modern-blue text-sm"></i></div>
+                                <p class="text-dark-grey text-[10px] font-sans-ui font-medium leading-snug">Elige un sitio histórico</p>
+                            </div>
+                            <div class="flex-1 bg-white rounded-xl p-3.5 text-center shadow-sm border border-parchment-dark/20">
+                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-cta/10 to-emerald-cta/5 flex items-center justify-center mx-auto mb-2"><i class="fas fa-camera text-emerald-cta text-sm"></i></div>
+                                <p class="text-dark-grey text-[10px] font-sans-ui font-medium leading-snug">Apunta tu cámara</p>
+                            </div>
+                            <div class="flex-1 bg-white rounded-xl p-3.5 text-center shadow-sm border border-parchment-dark/20">
+                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-antique/10 to-antique/5 flex items-center justify-center mx-auto mb-2"><i class="fas fa-wand-magic-sparkles text-antique text-sm"></i></div>
+                                <p class="text-dark-grey text-[10px] font-sans-ui font-medium leading-snug">Vive la historia en AR</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== LOCATIONS ==================== -->
+            <section id="screen-locations" class="screen absolute inset-0">
+                <div class="screen-content h-full overflow-y-auto">
+                    <div class="px-5 pt-4">
+                        <h2 class="font-serif-display text-antique text-xl font-bold mb-0.5">Sitios Históricos</h2>
+                        <p class="text-medium-grey font-sans-ui text-[13px] mb-4">6 lugares de Costa Rica para explorar</p>
+
+                        <!-- Search -->
+                        <div class="relative mb-4">
+                            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-medium-grey text-xs"></i>
+                            <input type="text" id="search-input" oninput="filterLocations()" placeholder="Buscar sitios históricos..." class="w-full bg-white rounded-xl pl-10 pr-4 py-3 text-[13px] font-sans-ui text-dark-grey placeholder-medium-grey shadow-sm border border-parchment-dark/40 focus:outline-none focus:ring-2 focus:ring-modern-blue/30 focus:border-modern-blue transition-all">
+                        </div>
+
+                        <!-- Category Pills -->
+                        <div class="flex gap-2 mb-4 overflow-x-auto pb-1 -mx-1 px-1" id="cat-pills">
+                            <button class="cat-pill active flex-shrink-0 px-3.5 py-1.5 rounded-full text-[11px] font-sans-ui font-medium transition-all bg-antique text-white" onclick="filterByCategory('all')">Todos</button>
+                            <button class="cat-pill flex-shrink-0 px-3.5 py-1.5 rounded-full text-[11px] font-sans-ui font-medium transition-all bg-white text-dark-grey shadow-sm border border-parchment-dark/30" onclick="filterByCategory('arqueologico')">Arqueológicos</button>
+                            <button class="cat-pill flex-shrink-0 px-3.5 py-1.5 rounded-full text-[11px] font-sans-ui font-medium transition-all bg-white text-dark-grey shadow-sm border border-parchment-dark/30" onclick="filterByCategory('colonial')">Coloniales</button>
+                            <button class="cat-pill flex-shrink-0 px-3.5 py-1.5 rounded-full text-[11px] font-sans-ui font-medium transition-all bg-white text-dark-grey shadow-sm border border-parchment-dark/30" onclick="filterByCategory('religioso')">Religiosos</button>
+                            <button class="cat-pill flex-shrink-0 px-3.5 py-1.5 rounded-full text-[11px] font-sans-ui font-medium transition-all bg-white text-dark-grey shadow-sm border border-parchment-dark/30" onclick="filterByCategory('cultural')">Culturales</button>
+                        </div>
+                    </div>
+
+                    <!-- Cards -->
+                    <div class="px-5 space-y-3.5 pb-6" id="location-cards"></div>
+                </div>
+            </section>
+
+            <!-- ==================== DETAIL ==================== -->
+            <section id="screen-detail" class="screen absolute inset-0">
+                <div class="screen-content h-full overflow-y-auto">
+                    <div class="relative">
+                        <img id="detail-image" src="" alt="" class="w-full h-52 object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20"></div>
+                        <button onclick="navigateTo('screen-locations')" class="absolute top-3 left-3 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md z-10 active:scale-95"><i class="fas fa-arrow-left text-antique text-xs"></i></button>
+                        <button class="absolute top-3 right-3 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md z-10 active:scale-95"><i class="far fa-heart text-antique text-xs"></i></button>
+                        <!-- Badge on image -->
+                        <div class="absolute bottom-3 left-3 z-10">
+                            <span id="detail-badge" class="inline-block px-2.5 py-1 bg-emerald-cta text-white text-[9px] font-sans-ui font-bold rounded-full uppercase tracking-wider"></span>
+                        </div>
+                    </div>
+
+                    <div class="px-5 -mt-5 relative z-10">
+                        <div class="bg-white rounded-2xl shadow-lg p-5 border border-parchment-dark/20">
+                            <div class="flex items-start justify-between mb-1">
+                                <h3 id="detail-title" class="font-serif-display text-antique text-lg font-bold leading-tight flex-1 pr-3"></h3>
+                                <div class="flex items-center gap-1 bg-parchment rounded-full px-2 py-0.5 flex-shrink-0">
+                                    <i class="fas fa-star text-yellow-500 text-[10px]"></i>
+                                    <span id="detail-rating" class="font-sans-ui font-semibold text-xs text-dark-grey"></span>
+                                </div>
+                            </div>
+                            <p id="detail-location" class="text-modern-blue text-[11px] font-sans-ui font-medium mb-3.5 flex items-center gap-1"></p>
+
+                            <div class="ornament block mb-3.5"></div>
+
+                            <h4 class="font-serif-display text-antique text-[13px] font-bold mb-2"><i class="fas fa-scroll mr-1.5 text-xs opacity-60"></i>Historia</h4>
+                            <p id="detail-description" class="text-dark-grey text-[13px] font-sans-ui leading-relaxed mb-4"></p>
+
+                            <!-- Info Grid -->
+                            <div class="grid grid-cols-3 gap-2.5 mb-4">
+                                <div class="bg-parchment rounded-xl p-2.5 text-center">
+                                    <i class="fas fa-calendar-alt text-antique text-xs mb-1 block"></i>
+                                    <span id="detail-year" class="text-dark-grey text-[10px] font-sans-ui font-semibold block"></span>
+                                </div>
+                                <div class="bg-parchment rounded-xl p-2.5 text-center">
+                                    <i class="fas fa-route text-modern-blue text-xs mb-1 block"></i>
+                                    <span id="detail-distance" class="text-dark-grey text-[10px] font-sans-ui font-semibold block"></span>
+                                </div>
+                                <div class="bg-parchment rounded-xl p-2.5 text-center">
+                                    <i class="fas fa-clock text-emerald-cta text-xs mb-1 block"></i>
+                                    <span id="detail-time" class="text-dark-grey text-[10px] font-sans-ui font-semibold block"></span>
+                                </div>
+                            </div>
+
+                            <button onclick="navigateTo('screen-ar')" class="relative w-full bg-emerald-cta hover:bg-emerald-dark text-white font-sans-ui font-bold text-[14px] py-3.5 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 active:scale-[0.97] pulse-ring overflow-visible">
+                                <i class="fas fa-cube"></i> Activar Experiencia AR
+                            </button>
+                            <button onclick="navigateTo('screen-gallery')" class="w-full mt-2.5 bg-white border-2 border-modern-blue text-modern-blue font-sans-ui font-semibold text-[13px] py-3 rounded-xl transition-all flex items-center justify-center gap-2 hover:bg-modern-blue hover:text-white active:scale-[0.97]">
+                                <i class="fas fa-images text-xs"></i> Comparación Antes vs Ahora
+                            </button>
+                        </div>
+                    </div>
+                    <div class="h-6"></div>
+                </div>
+            </section>
+
+            <!-- ==================== AR ==================== -->
+            <section id="screen-ar" class="screen absolute inset-0">
+                <div class="h-full relative overflow-hidden bg-black">
+                    <img src="img/ar_bg.png" alt="Vista cámara simulada - paisaje CR" class="absolute inset-0 w-full h-full object-cover">
+                    <div class="ar-scan-line"></div>
+                    <div class="ar-bracket tl"></div>
+                    <div class="ar-bracket tr"></div>
+                    <div class="ar-bracket bl"></div>
+                    <div class="ar-bracket br"></div>
+
+                    <!-- Floating 3D Object -->
+                    <div class="absolute top-[18%] left-1/2 -translate-x-1/2 animate-float z-10">
+                        <div class="relative">
+                            <div class="absolute inset-0 bg-emerald-cta/15 rounded-full blur-3xl scale-[1.8]"></div>
+                            <div class="relative">
+                                <div class="relative inline-block">
+                                    <img src="img/stone_sphere.png" alt="Esfera de piedra" class="w-36 h-44 object-cover rounded-2xl shadow-2xl border-2 border-white/25 opacity-90">
+                                    <div class="absolute inset-0 rounded-2xl border-2 border-emerald-cta/40 shadow-[0_0_20px_rgba(76,175,80,0.3)]"></div>
+                                </div>
+                                <div class="mt-2 glass rounded-lg px-3 py-1.5 flex items-center justify-center gap-1.5">
+                                    <span class="w-2 h-2 bg-emerald-cta rounded-full animate-pulse"></span>
+                                    <span class="text-white text-[10px] font-sans-ui font-semibold">Modelo AR Activo</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top bar -->
+                    <div class="absolute top-3 left-3 right-3 flex items-center justify-between z-20">
+                        <button onclick="navigateTo('screen-locations')" class="w-9 h-9 glass rounded-full flex items-center justify-center"><i class="fas fa-arrow-left text-white text-xs"></i></button>
+                        <div class="glass rounded-full px-3.5 py-1.5 flex items-center gap-1.5"><span class="w-2 h-2 bg-emerald-cta rounded-full animate-pulse"></span><span class="text-white text-[11px] font-sans-ui font-medium">AR Activo</span></div>
+                        <button class="w-9 h-9 glass rounded-full flex items-center justify-center"><i class="fas fa-camera text-white text-xs"></i></button>
+                    </div>
+
+                    <!-- Distance -->
+                    <div class="absolute top-16 left-1/2 -translate-x-1/2 glass rounded-xl px-3.5 py-1.5 z-20">
+                        <p class="text-white text-[11px] font-sans-ui text-center"><i class="fas fa-crosshairs mr-1 text-emerald-cta"></i>Artefacto detectado a <strong>1.2m</strong></p>
+                    </div>
+
+                    <!-- Bottom panel -->
+                    <div class="absolute bottom-0 left-0 right-0 z-20">
+                        <div class="glass rounded-t-3xl px-5 pt-4 pb-7">
+                            <div class="w-10 h-1 bg-white/25 rounded-full mx-auto mb-3"></div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0 border border-white/15 text-2xl">🏺</div>
+                                <div class="flex-1 min-w-0">
+                                    <h4 class="font-serif-display text-white text-[15px] font-bold mb-0.5">Esfera de Piedra del Diquís</h4>
+                                    <p class="text-white/65 text-[11px] font-sans-ui leading-relaxed mb-2.5">Réplica digital precolombina (500-1500 d.C.). Patrimonio UNESCO 2014.</p>
+                                    <div class="flex gap-2">
+                                        <button onclick="showARInfo()" class="flex-1 bg-white/12 hover:bg-white/20 text-white font-sans-ui font-medium text-[11px] py-2 rounded-xl transition-colors flex items-center justify-center gap-1 border border-white/15"><i class="fas fa-info-circle text-[10px]"></i> ¿Cómo funciona?</button>
+                                        <button onclick="navigateTo('screen-gallery')" class="flex-1 bg-emerald-cta hover:bg-emerald-dark text-white font-sans-ui font-medium text-[11px] py-2 rounded-xl transition-colors flex items-center justify-center gap-1"><i class="fas fa-images text-[10px]"></i> Galería</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== GALLERY ==================== -->
+            <section id="screen-gallery" class="screen absolute inset-0">
+                <div class="screen-content h-full overflow-y-auto">
+                    <div class="px-5 pt-4">
+                        <button onclick="navigateTo('screen-locations')" class="mb-3 flex items-center gap-1.5 text-modern-blue font-sans-ui text-[13px] font-medium hover:underline"><i class="fas fa-arrow-left text-[10px]"></i> Volver</button>
+                        <h2 class="font-serif-display text-antique text-xl font-bold mb-0.5">Antes vs Ahora</h2>
+                        <p class="text-medium-grey font-sans-ui text-[13px] mb-5">Desliza para comparar el pasado con el presente</p>
+
+                        <!-- Slider 1 -->
+                        <div class="mb-5">
+                            <h4 class="font-serif-display text-antique text-[13px] font-bold mb-2"><i class="fas fa-landmark mr-1.5 text-[11px] opacity-60"></i>Monumento Nacional Guayabo</h4>
+                            <div class="comparison-container shadow-lg" id="comparison-1">
+                                <img src="img/guayabo.png" alt="Guayabo - Presente" class="comparison-after">
+                                <div class="comparison-overlay" id="overlay-1">
+                                    <img src="img/guayabo.png" alt="Guayabo - Pasado" style="filter: grayscale(100%) sepia(30%) contrast(1.1);">
+                                </div>
+                                <div class="comparison-slider-line" id="line-1"></div>
+                                <div class="comparison-slider-handle" id="handle-1"><i class="fas fa-arrows-left-right"></i></div>
+                                <span class="comparison-label left">Antes</span>
+                                <span class="comparison-label right">Ahora</span>
+                            </div>
+                        </div>
+
+                        <!-- Slider 2 -->
+                        <div class="mb-5">
+                            <h4 class="font-serif-display text-antique text-[13px] font-bold mb-2"><i class="fas fa-theater-masks mr-1.5 text-[11px] opacity-60"></i>Teatro Nacional</h4>
+                            <div class="comparison-container shadow-lg" id="comparison-2">
+                                <img src="img/teatro.png" alt="Teatro - Presente" class="comparison-after">
+                                <div class="comparison-overlay" id="overlay-2">
+                                    <img src="img/teatro.png" alt="Teatro - Pasado" style="filter: grayscale(100%) sepia(30%) contrast(1.1);">
+                                </div>
+                                <div class="comparison-slider-line" id="line-2"></div>
+                                <div class="comparison-slider-handle" id="handle-2"><i class="fas fa-arrows-left-right"></i></div>
+                                <span class="comparison-label left">Antes</span>
+                                <span class="comparison-label right">Ahora</span>
+                            </div>
+                        </div>
+
+                        <!-- Slider 3 -->
+                        <div class="mb-5">
+                            <h4 class="font-serif-display text-antique text-[13px] font-bold mb-2"><i class="fas fa-church mr-1.5 text-[11px] opacity-60"></i>Basílica de los Ángeles</h4>
+                            <div class="comparison-container shadow-lg" id="comparison-3">
+                                <img src="img/basilica.png" alt="Basílica - Presente" class="comparison-after">
+                                <div class="comparison-overlay" id="overlay-3">
+                                    <img src="img/basilica.png" alt="Basílica - Pasado" style="filter: grayscale(100%) sepia(30%) contrast(1.1);">
+                                </div>
+                                <div class="comparison-slider-line" id="line-3"></div>
+                                <div class="comparison-slider-handle" id="handle-3"><i class="fas fa-arrows-left-right"></i></div>
+                                <span class="comparison-label left">Antes</span>
+                                <span class="comparison-label right">Ahora</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-2xl p-4 shadow-md border border-parchment-dark/20 mb-6">
+                            <div class="flex items-center gap-2.5 mb-2">
+                                <div class="w-8 h-8 rounded-full bg-modern-blue/10 flex items-center justify-center"><i class="fas fa-info-circle text-modern-blue text-sm"></i></div>
+                                <h4 class="font-serif-display text-antique text-[13px] font-bold">Sobre esta función</h4>
+                            </div>
+                            <p class="text-dark-grey text-[12px] font-sans-ui leading-relaxed">Nuestra tecnología superpone fotografías históricas sobre la vista actual. Desliza el control central para viajar entre el pasado y el presente de Costa Rica.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== ABOUT ==================== -->
+            <section id="screen-about" class="screen absolute inset-0">
+                <div class="screen-content h-full overflow-y-auto">
+                    <div class="px-5 pt-4">
+                        <h2 class="font-serif-display text-antique text-xl font-bold mb-0.5">Sobre el Proyecto</h2>
+                        <p class="text-medium-grey font-sans-ui text-[13px] mb-5">Conoce más sobre EchoHistory</p>
+
+                        <!-- Brand -->
+                        <div class="bg-antique rounded-2xl p-5 text-center mb-4 shadow-lg relative overflow-hidden">
+                            <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-modern-blue via-emerald-cta to-modern-blue"></div>
+                            <div class="w-16 h-16 rounded-2xl bg-white/15 flex items-center justify-center mx-auto mb-3 border border-white/20"><i class="fas fa-landmark text-2xl text-white"></i></div>
+                            <h3 class="font-serif-display text-white text-xl font-bold mb-1">EchoHistory</h3>
+                            <p class="text-white/60 font-sans-ui text-[10px] tracking-[3px] uppercase">Costa Rica · AR</p>
+                        </div>
+
+                        <!-- Mission -->
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-parchment-dark/20 mb-3">
+                            <h4 class="font-serif-display text-antique text-[14px] font-bold mb-2 flex items-center gap-2"><i class="fas fa-bullseye text-emerald-cta text-xs"></i>Nuestra Misión</h4>
+                            <p class="text-dark-grey text-[12px] font-sans-ui leading-relaxed">EchoHistory busca transformar el turismo cultural en Costa Rica usando Realidad Aumentada para dar vida al patrimonio. Nuestro objetivo es que cada visitante pueda ver, sentir y comprender el pasado precolombino y colonial costarricense.</p>
+                        </div>
+
+                        <!-- Objectives -->
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-parchment-dark/20 mb-3">
+                            <h4 class="font-serif-display text-antique text-[14px] font-bold mb-2 flex items-center gap-2"><i class="fas fa-list-check text-modern-blue text-xs"></i>Objetivos</h4>
+                            <ul class="space-y-2.5">
+                                <li class="flex items-start gap-2.5"><span class="w-5 h-5 bg-emerald-cta/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"><i class="fas fa-check text-emerald-cta text-[8px]"></i></span><p class="text-dark-grey text-[12px] font-sans-ui leading-relaxed">Democratizar el acceso al patrimonio histórico costarricense desde cualquier dispositivo móvil.</p></li>
+                                <li class="flex items-start gap-2.5"><span class="w-5 h-5 bg-emerald-cta/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"><i class="fas fa-check text-emerald-cta text-[8px]"></i></span><p class="text-dark-grey text-[12px] font-sans-ui leading-relaxed">Crear experiencias educativas inmersivas que complementen el turismo tradicional.</p></li>
+                                <li class="flex items-start gap-2.5"><span class="w-5 h-5 bg-emerald-cta/10 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"><i class="fas fa-check text-emerald-cta text-[8px]"></i></span><p class="text-dark-grey text-[12px] font-sans-ui leading-relaxed">Preservar digitalmente el legado — desde las esferas del Diquís hasta la arquitectura colonial.</p></li>
+                            </ul>
+                        </div>
+
+                        <!-- Tech -->
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-parchment-dark/20 mb-3">
+                            <h4 class="font-serif-display text-antique text-[14px] font-bold mb-2 flex items-center gap-2"><i class="fas fa-microchip text-modern-blue text-xs"></i>Tecnología</h4>
+                            <div class="grid grid-cols-4 gap-2">
+                                <div class="bg-parchment rounded-lg p-2 text-center"><i class="fas fa-cube text-modern-blue text-sm mb-1 block"></i><span class="text-dark-grey text-[9px] font-sans-ui font-medium">WebXR</span></div>
+                                <div class="bg-parchment rounded-lg p-2 text-center"><i class="fas fa-brain text-emerald-cta text-sm mb-1 block"></i><span class="text-dark-grey text-[9px] font-sans-ui font-medium">CV</span></div>
+                                <div class="bg-parchment rounded-lg p-2 text-center"><i class="fas fa-globe text-antique text-sm mb-1 block"></i><span class="text-dark-grey text-[9px] font-sans-ui font-medium">Three.js</span></div>
+                                <div class="bg-parchment rounded-lg p-2 text-center"><i class="fas fa-cloud text-medium-grey text-sm mb-1 block"></i><span class="text-dark-grey text-[9px] font-sans-ui font-medium">Cloud</span></div>
+                            </div>
+                        </div>
+
+                        <!-- University -->
+                        <div class="bg-gradient-to-br from-modern-blue to-modern-blue-light rounded-2xl p-4 shadow-lg mb-3 text-center">
+                            <i class="fas fa-university text-white/90 text-xl mb-2 block"></i>
+                            <p class="text-white font-sans-ui text-[13px] font-semibold mb-0.5">Proyecto Académico</p>
+                            <p class="text-white/75 font-sans-ui text-[11px]">Proyecto en desarrollo para la<br><strong class="text-white">Universidad Hispanoamericana (UH)</strong></p>
+                        </div>
+
+                        <!-- Contact -->
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-parchment-dark/20 mb-3">
+                            <h4 class="font-serif-display text-antique text-[14px] font-bold mb-3 flex items-center gap-2"><i class="fas fa-envelope text-emerald-cta text-xs"></i>Contacto</h4>
+                            <div class="space-y-2.5">
+                                <a href="mailto:info@echohistory.cr" class="flex items-center gap-2.5 text-dark-grey font-sans-ui text-[12px] hover:text-modern-blue transition-colors"><div class="w-8 h-8 rounded-lg bg-parchment flex items-center justify-center"><i class="fas fa-envelope text-antique text-[10px]"></i></div>info@echohistory.cr</a>
+                                <a href="#" class="flex items-center gap-2.5 text-dark-grey font-sans-ui text-[12px] hover:text-modern-blue transition-colors"><div class="w-8 h-8 rounded-lg bg-parchment flex items-center justify-center"><i class="fas fa-globe text-antique text-[10px]"></i></div>www.echohistory.cr</a>
+                            </div>
+                            <div class="flex items-center justify-center gap-3 mt-4 pt-3.5 border-t border-parchment-dark/25">
+                                <a href="#" class="w-10 h-10 rounded-xl bg-antique text-white flex items-center justify-center hover:bg-antique-light transition-colors shadow-sm"><i class="fab fa-instagram"></i></a>
+                                <a href="#" class="w-10 h-10 rounded-xl bg-antique text-white flex items-center justify-center hover:bg-antique-light transition-colors shadow-sm"><i class="fab fa-x-twitter"></i></a>
+                                <a href="#" class="w-10 h-10 rounded-xl bg-antique text-white flex items-center justify-center hover:bg-antique-light transition-colors shadow-sm"><i class="fab fa-facebook-f"></i></a>
+                                <a href="#" class="w-10 h-10 rounded-xl bg-antique text-white flex items-center justify-center hover:bg-antique-light transition-colors shadow-sm"><i class="fab fa-youtube"></i></a>
+                                <a href="#" class="w-10 h-10 rounded-xl bg-antique text-white flex items-center justify-center hover:bg-antique-light transition-colors shadow-sm"><i class="fab fa-tiktok"></i></a>
+                            </div>
+                        </div>
+
+                        <div class="text-center py-4">
+                            <p class="text-medium-grey font-sans-ui text-[10px]">EchoHistory v1.0.0 · Prototipo</p>
+                            <p class="text-medium-grey/50 font-sans-ui text-[9px] mt-0.5">© 2026 EchoHistory · Universidad Hispanoamericana</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- AR Info Modal -->
+        <div id="ar-info-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-5" style="background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
+            <div class="bg-white rounded-2xl p-5 max-w-sm w-full shadow-2xl animate-slide-up">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="font-serif-display text-antique text-base font-bold">¿Cómo funciona la AR?</h3>
+                    <button onclick="closeARInfo()" class="w-7 h-7 rounded-full bg-parchment flex items-center justify-center hover:bg-parchment-dark transition-colors"><i class="fas fa-times text-antique text-xs"></i></button>
+                </div>
+                <div class="ornament block mb-3"></div>
+                <div class="space-y-3">
+                    <div class="flex items-start gap-2.5"><div class="w-7 h-7 rounded-full bg-modern-blue/10 flex items-center justify-center flex-shrink-0"><span class="text-modern-blue font-sans-ui font-bold text-xs">1</span></div><p class="text-dark-grey text-[12px] font-sans-ui leading-relaxed">Tu cámara escanea el entorno y detecta superficies y puntos de referencia.</p></div>
+                    <div class="flex items-start gap-2.5"><div class="w-7 h-7 rounded-full bg-modern-blue/10 flex items-center justify-center flex-shrink-0"><span class="text-modern-blue font-sans-ui font-bold text-xs">2</span></div><p class="text-dark-grey text-[12px] font-sans-ui leading-relaxed">Computer Vision identifica el sitio histórico y carga el modelo 3D.</p></div>
+                    <div class="flex items-start gap-2.5"><div class="w-7 h-7 rounded-full bg-modern-blue/10 flex items-center justify-center flex-shrink-0"><span class="text-modern-blue font-sans-ui font-bold text-xs">3</span></div><p class="text-dark-grey text-[12px] font-sans-ui leading-relaxed">El artefacto digital se superpone al mundo real para que interactúes con la historia.</p></div>
+                </div>
+                <button onclick="closeARInfo()" class="w-full mt-4 bg-emerald-cta hover:bg-emerald-dark text-white font-sans-ui font-semibold text-[13px] py-2.5 rounded-xl transition-colors active:scale-95">¡Entendido!</button>
+            </div>
+        </div>
+
+        <!-- Bottom Nav -->
+        <nav class="flex-shrink-0 bg-white border-t border-parchment-dark/25 px-1 pt-1.5 pb-[max(6px,env(safe-area-inset-bottom))] z-50 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
+            <div class="flex items-center justify-around">
+                <button class="nav-item active relative flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all" onclick="navigateTo('screen-home')" id="nav-home"><i class="nav-icon fas fa-home text-base transition-colors"></i><span class="nav-label text-[9px] font-sans-ui font-medium transition-colors">Inicio</span></button>
+                <button class="nav-item relative flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all" onclick="navigateTo('screen-locations')" id="nav-locations"><i class="nav-icon fas fa-map-marked-alt text-base text-medium-grey transition-colors"></i><span class="nav-label text-[9px] font-sans-ui font-medium text-medium-grey transition-colors">Mapa</span></button>
+                <button class="nav-item relative flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all" onclick="navigateTo('screen-ar')" id="nav-ar"><i class="nav-icon fas fa-cube text-base text-medium-grey transition-colors"></i><span class="nav-label text-[9px] font-sans-ui font-medium text-medium-grey transition-colors">AR</span></button>
+                <button class="nav-item relative flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all" onclick="navigateTo('screen-gallery')" id="nav-gallery"><i class="nav-icon fas fa-images text-base text-medium-grey transition-colors"></i><span class="nav-label text-[9px] font-sans-ui font-medium text-medium-grey transition-colors">Galería</span></button>
+                <button class="nav-item relative flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all" onclick="navigateTo('screen-about')" id="nav-about"><i class="nav-icon fas fa-info-circle text-base text-medium-grey transition-colors"></i><span class="nav-label text-[9px] font-sans-ui font-medium text-medium-grey transition-colors">Info</span></button>
+            </div>
+        </nav>
+    </div>
+
+    <script>
+    (function() {
+        'use strict';
+
+        // ======================== DATA ========================
+        const locations = [
+            {
+                id: 0,
+                title: 'Monumento Nacional Guayabo',
+                location: 'Turrialba, Cartago',
+                distance: '78 km',
+                rating: '4.9',
+                year: '1000 a.C.',
+                time: '~2 horas',
+                category: 'arqueologico',
+                badge: 'Patrimonio',
+                badgeColor: 'bg-emerald-cta',
+                image: 'img/guayabo.png',
+                description: 'El Monumento Nacional Guayabo es el sitio arqueológico más importante de Costa Rica, ubicado en las faldas del volcán Turrialba. Habitado desde el 1000 a.C. hasta el 1400 d.C., presenta un sofisticado sistema de acueductos, calzadas empedradas, montículos y petroglifos. En 2009, la ASCE lo declaró Patrimonio Mundial de la Ingeniería por su sistema hidráulico que aún funciona tras más de 500 años.'
+            },
+            {
+                id: 1,
+                title: 'Teatro Nacional de Costa Rica',
+                location: 'San José Centro',
+                distance: '1.2 km',
+                rating: '4.8',
+                year: '1897',
+                time: '~30 min',
+                category: 'cultural',
+                badge: 'Popular',
+                badgeColor: 'bg-modern-blue',
+                image: 'img/teatro.png',
+                description: 'Inaugurado el 21 de octubre de 1897, es el edificio más emblemático de la arquitectura costarricense. Financiado con un impuesto al café, fue diseñado al estilo neoclásico europeo. Su fachada presenta columnas corintias, estatuas alegóricas, y un interior con mármoles italianos, pan de oro y la célebre pintura "Alegoría del café y el banano" de Aleardo Villa.'
+            },
+            {
+                id: 2,
+                title: 'Ruinas de Ujarrás',
+                location: 'Valle de Orosí, Cartago',
+                distance: '32 km',
+                rating: '4.7',
+                year: '1575',
+                time: '~50 min',
+                category: 'colonial',
+                badge: 'Colonial',
+                badgeColor: 'bg-antique',
+                image: 'img/ujarras.png',
+                description: 'Vestigios del templo colonial más antiguo de Costa Rica, construido entre 1575 y 1580. Según la tradición, fue erigido donde un indígena encontró una imagen de la Virgen del Rescate. La iglesia resistió inundaciones y terremotos hasta 1833, cuando la población fue trasladada a Paraíso. Sus muros de calicanto y fachada renacentista son Patrimonio Nacional.'
+            },
+            {
+                id: 3,
+                title: 'Basílica de los Ángeles',
+                location: 'Cartago Centro',
+                distance: '24 km',
+                rating: '4.9',
+                year: '1639',
+                time: '~40 min',
+                category: 'religioso',
+                badge: 'Icónico',
+                badgeColor: 'bg-antique',
+                image: 'img/basilica.png',
+                description: 'La Basílica de Nuestra Señora de los Ángeles es el santuario religioso más importante de Costa Rica. Aquí se venera a La Negrita, patrona del país, cuya imagen fue encontrada en 1635. El templo actual, de estilo bizantino, fue reconstruido tras el terremoto de 1926. Cada 2 de agosto, millones de devotos peregrinan desde todo el país hasta este lugar sagrado.'
+            },
+            {
+                id: 4,
+                title: 'Iglesia Colonial de Orosí',
+                location: 'Valle de Orosí, Cartago',
+                distance: '28 km',
+                rating: '4.7',
+                year: '1743',
+                time: '~45 min',
+                category: 'colonial',
+                badge: 'Colonial',
+                badgeColor: 'bg-antique',
+                image: 'img/orosi.png',
+                description: 'La Iglesia de San José de Orosí es una de las pocas iglesias coloniales que permanecen en pie en Costa Rica. Construida en 1743 por misioneros franciscanos, su estructura de adobe, calicanto y madera ha sobrevivido a múltiples terremotos. Su retablo barroco dorado, su altar de plata y sus pinturas coloniales la convierten en un tesoro viviente del arte sacro centroamericano.'
+            },
+            {
+                id: 5,
+                title: 'Museo Nacional de Costa Rica',
+                location: 'San José, Cuesta de Moras',
+                distance: '0.8 km',
+                rating: '4.9',
+                year: '1887',
+                time: '~20 min',
+                category: 'cultural',
+                badge: 'Destacado',
+                badgeColor: 'bg-emerald-cta',
+                image: 'img/museo.png',
+                description: 'Ubicado en el antiguo Cuartel Bellavista, el Museo Nacional fue fundado en 1887 y es el museo más importante del país. Sus muros aún conservan los impactos de bala de la Guerra Civil de 1948. Alberga la mayor colección de esferas de piedra precolombinas, artefactos de jade y oro, y exhibiciones sobre la historia natural y cultural de Costa Rica desde la era precolombina hasta la actualidad.'
+            }
+        ];
+
+        // ======================== RENDER LOCATION CARDS ========================
+        function renderLocationCards(filteredLocations) {
+            const container = document.getElementById('location-cards');
+            container.innerHTML = filteredLocations.map((loc, i) => `
+                <div class="bg-white rounded-2xl shadow-md overflow-hidden group cursor-pointer hover:shadow-lg transition-all duration-300 card-enter border border-parchment-dark/15" onclick="showDetail(${loc.id})">
+                    <div class="flex">
+                        <div class="relative w-[110px] h-[120px] flex-shrink-0 overflow-hidden">
+                            <img src="${loc.image}" alt="${loc.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            <div class="absolute top-2 left-2"><span class="${loc.badgeColor} text-white text-[8px] font-sans-ui font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">${loc.badge}</span></div>
+                        </div>
+                        <div class="flex-1 p-3 flex flex-col justify-between min-w-0">
+                            <div>
+                                <h4 class="font-serif-display text-antique text-[13px] font-bold leading-tight mb-0.5 truncate">${loc.title}</h4>
+                                <p class="text-medium-grey text-[10px] font-sans-ui flex items-center gap-1"><i class="fas fa-map-marker-alt text-modern-blue text-[8px]"></i>${loc.location} · ${loc.distance}</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-2">
+                                <div class="flex items-center gap-1">
+                                    <div class="flex text-yellow-500 text-[8px] gap-px"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i></div>
+                                    <span class="text-medium-grey text-[10px] font-sans-ui font-medium">${loc.rating}</span>
+                                </div>
+                                <span class="text-modern-blue text-[10px] font-sans-ui font-semibold">Ver más <i class="fas fa-chevron-right text-[7px]"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Initial render
+        renderLocationCards(locations);
+
+        // ======================== FILTER ========================
+        window.filterByCategory = function(cat) {
+            document.querySelectorAll('.cat-pill').forEach(p => {
+                p.classList.remove('active', 'bg-antique', 'text-white');
+                p.classList.add('bg-white', 'text-dark-grey');
+            });
+            event.target.classList.add('active', 'bg-antique', 'text-white');
+            event.target.classList.remove('bg-white', 'text-dark-grey');
+
+            const filtered = cat === 'all' ? locations : locations.filter(l => l.category === cat);
+            renderLocationCards(filtered);
+        };
+
+        window.filterLocations = function() {
+            const q = document.getElementById('search-input').value.toLowerCase();
+            const filtered = locations.filter(l => l.title.toLowerCase().includes(q) || l.location.toLowerCase().includes(q));
+            renderLocationCards(filtered);
+        };
+
+        // ======================== NAVIGATION ========================
+        const screenMap = {
+            'screen-home': 'nav-home',
+            'screen-locations': 'nav-locations',
+            'screen-ar': 'nav-ar',
+            'screen-gallery': 'nav-gallery',
+            'screen-about': 'nav-about',
+        };
+        const titles = {
+            'screen-home': 'EchoHistory',
+            'screen-locations': 'Ubicaciones',
+            'screen-detail': 'Detalle',
+            'screen-ar': 'Experiencia AR',
+            'screen-gallery': 'Galería',
+            'screen-about': 'Sobre Nosotros',
+        };
+
+        window.navigateTo = function(screenId) {
+            // Remove active from all screens
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            // Show target screen
+            const target = document.getElementById(screenId);
+            if (target) {
+                target.classList.add('active');
+                const content = target.querySelector('.screen-content');
+                if (content) content.scrollTop = 0;
+            }
+            // Update nav highlights
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            const navId = screenMap[screenId];
+            if (navId) document.getElementById(navId)?.classList.add('active');
+            document.getElementById('header-title').textContent = titles[screenId] || 'EchoHistory';
+        };
+
+        // ======================== DETAIL ========================
+        window.showDetail = function(id) {
+            const loc = locations.find(l => l.id === id);
+            if (!loc) return;
+            document.getElementById('detail-image').src = loc.image;
+            document.getElementById('detail-image').alt = loc.title;
+            document.getElementById('detail-title').textContent = loc.title;
+            document.getElementById('detail-rating').textContent = loc.rating;
+            document.getElementById('detail-location').innerHTML = '<i class="fas fa-map-marker-alt text-[9px]"></i> ' + loc.location + ' · ' + loc.distance;
+            document.getElementById('detail-description').textContent = loc.description;
+            document.getElementById('detail-year').textContent = loc.year;
+            document.getElementById('detail-distance').textContent = loc.distance;
+            document.getElementById('detail-time').textContent = loc.time;
+            const badge = document.getElementById('detail-badge');
+            badge.textContent = loc.badge;
+            badge.className = 'inline-block px-2.5 py-1 text-white text-[9px] font-sans-ui font-bold rounded-full uppercase tracking-wider ' + loc.badgeColor;
+            navigateTo('screen-detail');
+        };
+
+        // ======================== MODAL ========================
+        window.showARInfo = function() { const m = document.getElementById('ar-info-modal'); m.classList.remove('hidden'); m.classList.add('flex'); };
+        window.closeARInfo = function() { const m = document.getElementById('ar-info-modal'); m.classList.remove('flex'); m.classList.add('hidden'); };
+        document.getElementById('ar-info-modal')?.addEventListener('click', function(e) { if (e.target === this) closeARInfo(); });
+
+        // ======================== COMPARISON SLIDER ========================
+        function initSlider(cId, oId, lId, hId) {
+            const c = document.getElementById(cId), o = document.getElementById(oId), l = document.getElementById(lId), h = document.getElementById(hId);
+            if (!c || !o || !l || !h) return;
+            let drag = false;
+            function update(cx) { const r = c.getBoundingClientRect(); let x = Math.max(0, Math.min(cx - r.left, r.width)); const p = (x / r.width) * 100; o.style.width = p + '%'; l.style.left = p + '%'; h.style.left = p + '%'; }
+            c.addEventListener('mousedown', e => { drag = true; update(e.clientX); e.preventDefault(); });
+            document.addEventListener('mousemove', e => { if (drag) update(e.clientX); });
+            document.addEventListener('mouseup', () => { drag = false; });
+            c.addEventListener('touchstart', e => { drag = true; update(e.touches[0].clientX); }, { passive: true });
+            c.addEventListener('touchmove', e => { if (drag) { update(e.touches[0].clientX); e.preventDefault(); } }, { passive: false });
+            c.addEventListener('touchend', () => { drag = false; });
+        }
+
+        // Init sliders on gallery open
+        let slidersInit = false;
+        new MutationObserver(() => {
+            const g = document.getElementById('screen-gallery');
+            if (g?.classList.contains('active') && !slidersInit) {
+                slidersInit = true;
+                setTimeout(() => { initSlider('comparison-1','overlay-1','line-1','handle-1'); initSlider('comparison-2','overlay-2','line-2','handle-2'); initSlider('comparison-3','overlay-3','line-3','handle-3'); }, 100);
+            }
+        }).observe(document.querySelector('main'), { subtree: true, attributes: true, attributeFilter: ['class'] });
+
+        document.addEventListener('DOMContentLoaded', () => { initSlider('comparison-1','overlay-1','line-1','handle-1'); initSlider('comparison-2','overlay-2','line-2','handle-2'); initSlider('comparison-3','overlay-3','line-3','handle-3'); });
+    })();
+    </script>
+</body>
+</html>

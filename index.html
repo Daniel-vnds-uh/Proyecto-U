@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -194,7 +194,7 @@
                             <p class="text-white/80 font-sans-ui text-[13px] leading-relaxed max-w-[260px] mx-auto mb-6">
                                 Viaja en el tiempo con experiencias AR en sitios históricos costarricenses.
                             </p>
-                            <button onclick="navigateTo('screen-locations')" class="relative inline-flex items-center gap-2 bg-emerald-cta hover:bg-emerald-dark text-white font-sans-ui font-semibold text-[15px] px-7 py-3.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95 animate-glow">
+                            <button onclick="navigateTo('screen-historical')" class="relative inline-flex items-center gap-2 bg-emerald-cta hover:bg-emerald-dark text-white font-sans-ui font-semibold text-[15px] px-7 py-3.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95 animate-glow">
                                 <i class="fas fa-compass text-sm"></i>
                                 Explorar Sitios Históricos
                             </button>
@@ -225,7 +225,7 @@
                     <div class="mt-6 mb-2">
                         <div class="px-5 flex items-center justify-between mb-3">
                             <h3 class="font-serif-display text-antique text-[17px] font-bold">Destacados</h3>
-                            <button onclick="navigateTo('screen-locations')" class="text-modern-blue text-xs font-sans-ui font-semibold hover:underline">Ver todo <i class="fas fa-chevron-right text-[9px] ml-0.5"></i></button>
+                            <button onclick="navigateTo('screen-historical')" class="text-modern-blue text-xs font-sans-ui font-semibold hover:underline">Ver todo <i class="fas fa-chevron-right text-[9px] ml-0.5"></i></button>
                         </div>
                         <div class="scroll-cards pl-5 pr-3">
                             <!-- Featured 1 -->
@@ -314,7 +314,7 @@
             </section>
 
             <!-- ==================== LOCATIONS ==================== -->
-            <section id="screen-locations" class="screen absolute inset-0">
+            <section id="screen-historical" class="screen absolute inset-0">
                 <div class="screen-content h-full overflow-y-auto">
                     <div class="px-5 pt-4">
                         <h2 class="font-serif-display text-antique text-xl font-bold mb-0.5">Sitios Históricos</h2>
@@ -347,7 +347,7 @@
                     <div class="relative">
                         <img id="detail-image" src="" alt="" class="w-full h-52 object-cover">
                         <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20"></div>
-                        <button onclick="navigateTo('screen-locations')" class="absolute top-3 left-3 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md z-10 active:scale-95"><i class="fas fa-arrow-left text-antique text-xs"></i></button>
+                        <button onclick="navigateTo('screen-historical')" class="absolute top-3 left-3 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md z-10 active:scale-95"><i class="fas fa-arrow-left text-antique text-xs"></i></button>
                         <button class="absolute top-3 right-3 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md z-10 active:scale-95"><i class="far fa-heart text-antique text-xs"></i></button>
                         <!-- Badge on image -->
                         <div class="absolute bottom-3 left-3 z-10">
@@ -428,7 +428,7 @@
 
                     <!-- Top bar -->
                     <div class="absolute top-3 left-3 right-3 flex items-center justify-between z-20">
-                        <button onclick="navigateTo('screen-locations')" class="w-9 h-9 glass rounded-full flex items-center justify-center"><i class="fas fa-arrow-left text-white text-xs"></i></button>
+                        <button onclick="navigateTo('screen-historical')" class="w-9 h-9 glass rounded-full flex items-center justify-center"><i class="fas fa-arrow-left text-white text-xs"></i></button>
                         <div class="glass rounded-full px-3.5 py-1.5 flex items-center gap-1.5"><span class="w-2 h-2 bg-emerald-cta rounded-full animate-pulse"></span><span class="text-white text-[11px] font-sans-ui font-medium">AR Activo</span></div>
                         <button class="w-9 h-9 glass rounded-full flex items-center justify-center"><i class="fas fa-camera text-white text-xs"></i></button>
                     </div>
@@ -462,7 +462,7 @@
             <section id="screen-gallery" class="screen absolute inset-0">
                 <div class="screen-content h-full overflow-y-auto">
                     <div class="px-5 pt-4">
-                        <button onclick="navigateTo('screen-locations')" class="mb-3 flex items-center gap-1.5 text-modern-blue font-sans-ui text-[13px] font-medium hover:underline"><i class="fas fa-arrow-left text-[10px]"></i> Volver</button>
+                        <button onclick="navigateTo('screen-historical')" class="mb-3 flex items-center gap-1.5 text-modern-blue font-sans-ui text-[13px] font-medium hover:underline"><i class="fas fa-arrow-left text-[10px]"></i> Volver</button>
                         <h2 class="font-serif-display text-antique text-xl font-bold mb-0.5">Antes vs Ahora</h2>
                         <p class="text-medium-grey font-sans-ui text-[13px] mb-5">Desliza para comparar el pasado con el presente</p>
 
@@ -622,7 +622,7 @@
         <nav class="flex-shrink-0 bg-white border-t border-parchment-dark/25 px-1 pt-1.5 pb-[max(6px,env(safe-area-inset-bottom))] z-50 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
             <div class="flex items-center justify-around">
                 <button class="nav-item active relative flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all" onclick="navigateTo('screen-home')" id="nav-home"><i class="nav-icon fas fa-home text-base transition-colors"></i><span class="nav-label text-[9px] font-sans-ui font-medium transition-colors">Inicio</span></button>
-                <button class="nav-item relative flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all" onclick="navigateTo('screen-locations')" id="nav-locations"><i class="nav-icon fas fa-map-marked-alt text-base text-medium-grey transition-colors"></i><span class="nav-label text-[9px] font-sans-ui font-medium text-medium-grey transition-colors">Mapa</span></button>
+                <button class="nav-item relative flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all" onclick="navigateTo('screen-historical')" id="nav-historical"><i class="nav-icon fas fa-map-marked-alt text-base text-medium-grey transition-colors"></i><span class="nav-label text-[9px] font-sans-ui font-medium text-medium-grey transition-colors">Mapa</span></button>
                 <button class="nav-item relative flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all" onclick="navigateTo('screen-ar')" id="nav-ar"><i class="nav-icon fas fa-cube text-base text-medium-grey transition-colors"></i><span class="nav-label text-[9px] font-sans-ui font-medium text-medium-grey transition-colors">AR</span></button>
                 <button class="nav-item relative flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all" onclick="navigateTo('screen-gallery')" id="nav-gallery"><i class="nav-icon fas fa-images text-base text-medium-grey transition-colors"></i><span class="nav-label text-[9px] font-sans-ui font-medium text-medium-grey transition-colors">Galería</span></button>
                 <button class="nav-item relative flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all" onclick="navigateTo('screen-about')" id="nav-about"><i class="nav-icon fas fa-info-circle text-base text-medium-grey transition-colors"></i><span class="nav-label text-[9px] font-sans-ui font-medium text-medium-grey transition-colors">Info</span></button>
@@ -775,14 +775,14 @@
         // ======================== NAVIGATION ========================
         const screenMap = {
             'screen-home': 'nav-home',
-            'screen-locations': 'nav-locations',
+            'screen-historical': 'nav-historical',
             'screen-ar': 'nav-ar',
             'screen-gallery': 'nav-gallery',
             'screen-about': 'nav-about',
         };
         const titles = {
             'screen-home': 'EchoHistory',
-            'screen-locations': 'Ubicaciones',
+            'screen-historical': 'Ubicaciones',
             'screen-detail': 'Detalle',
             'screen-ar': 'Experiencia AR',
             'screen-gallery': 'Galería',
